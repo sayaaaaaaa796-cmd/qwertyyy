@@ -1,5 +1,5 @@
 name: Build APK
-run-name: Membuat File APK Otomatis
+run-name: Pembuatan APK
 on:
   push:
     branches: [ main ]
@@ -11,16 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ambil Semua Kode
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
 
-      - name: Siapkan Lingkungan Java
-        uses: actions/setup-java@v4.5.0
+      - name: Siapkan Java
+        uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: 'temurin'
-          cache: gradle
 
-      # Buat otomatis file kunci tanda tangan
+      # Buat file kunci tanda tangan otomatis
       - name: Buat File Kunci Debug
         run: |
           keytool -genkey -noprompt \
@@ -30,35 +29,19 @@ jobs:
             -storepass android -keypass android \
             -dname "CN=Android Debug,O=Android,C=US"
 
-      # ✅ FILE INI SUDAH SESUAI DENGAN NAMA PAKET APLIKASIMU
-      - name: Buat File Google Services Sementara
+      # Buat file Google Services pas dengan nama paket aplikasimu
+      - name: Buat File Google Services
         run: |
           echo '{"project_info":{"project_id":"temp-proyek","project_number":"000000000000","storage_bucket":"temp.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:abc123","android_client_info":{"package_name":"com.aistudio.vidsave.hd"}}}],"oauth_client":[],"api_key":[{"current_key":"AIzaSyContohSaja"}],"services":{}}' > app/google-services.json
 
-      # Beri izin lalu bangun APK
-      - name: Jalankan Pembuatan APK
-        run: |
-          chmod +x gradlew 2>/dev/null || true
-          ./gradlew assembleDebug --no-daemon --stacktrace
-
-      # Simpan hasil APK
-      - name: Simpan File APK
-        uses: actions/upload-artifact@v4.4.3
-        with:
-          name: Hasil-APK
-          path: app/build/outputs/apk/debug/*.apk
-          retention-days: 7
-          
-      # Beri izin jika nanti ada file gradlew, lalu bangun APK
+      # ✅ LANGKAH PENTING: TIDAK PAKAI ./gradlew, LANGSUNG PAKAI gradle
       - name: Bangun File APK
-        run: |
-          chmod +x gradlew 2>/dev/null || true
-          gradle assembleDebug --stacktrace --no-daemon
+        run: gradle assembleDebug --no-daemon --stacktrace
 
-      # Simpan hasil APK agar bisa diunduh
-      - name: Siapkan File APK Untuk Diunduh
+      # Simpan hasilnya
+      - name: Simpan File APK
         uses: actions/upload-artifact@v4
         with:
-          name: File-APK-Jadi
+          name: Hasil-APK
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 7
