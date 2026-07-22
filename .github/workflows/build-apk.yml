@@ -1,40 +1,54 @@
 name: Build APK
+run-name: Membuat File APK Otomatis
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build:
+  bangun-apk:
+    name: Proses Pembuatan APK
     runs-on: ubuntu-latest
     steps:
-      - name: Ambil semua kode
-        uses: actions/checkout@v4
+      - name: Ambil Semua Kode
+        uses: actions/checkout@v4.2.2
 
-      - name: Siapkan lingkungan Java
-        uses: actions/setup-java@v4
+      - name: Siapkan Lingkungan Java
+        uses: actions/setup-java@v4.5.0
         with:
           java-version: 17
-          distribution: temurin
+          distribution: 'temurin'
+          cache: gradle
 
-      # Buat otomatis file kunci tanda tangan yang dicari proyek
-      - name: Buat Keystore Debug Otomatis
+      # Buat otomatis file kunci tanda tangan
+      - name: Buat File Kunci Debug
         run: |
           keytool -genkey -noprompt \
             -alias androiddebugkey \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
+            -keyalg RSA -keysize 2048 -validity 10000 \
             -keystore debug.keystore \
-            -storepass android \
-            -keypass android \
+            -storepass android -keypass android \
             -dname "CN=Android Debug,O=Android,C=US"
 
-      # Buat file pengganti google-services.json supaya tidak error
+      # ✅ FILE INI SUDAH SESUAI DENGAN NAMA PAKET APLIKASIMU
       - name: Buat File Google Services Sementara
         run: |
-          echo '{"project_info":{"project_id":"dummy-temp","project_number":"123456789","storage_bucket":"dummy-temp.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789:android:abc123","android_client_info":{"package_name":"com.contoh.apk"}}}],"oauth_client":[],"api_key":[{"current_key":"AIzaSyTempSajaBukanAsli"}],"services":{}}' > app/google-services.json
+          echo '{"project_info":{"project_id":"temp-proyek","project_number":"000000000000","storage_bucket":"temp.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:abc123","android_client_info":{"package_name":"com.aistudio.vidsave.hd"}}}],"oauth_client":[],"api_key":[{"current_key":"AIzaSyContohSaja"}],"services":{}}' > app/google-services.json
 
+      # Beri izin lalu bangun APK
+      - name: Jalankan Pembuatan APK
+        run: |
+          chmod +x gradlew 2>/dev/null || true
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      # Simpan hasil APK
+      - name: Simpan File APK
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: Hasil-APK
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 7
+          
       # Beri izin jika nanti ada file gradlew, lalu bangun APK
       - name: Bangun File APK
         run: |
