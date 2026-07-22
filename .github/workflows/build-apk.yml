@@ -8,20 +8,43 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Ambil Kode
+      - name: Ambil semua kode
         uses: actions/checkout@v4
 
-      - name: Siapkan Java
+      - name: Siapkan lingkungan Java
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
 
-      - name: Bangun APK
-        run: gradle assembleDebug
+      # Buat otomatis file kunci tanda tangan yang dicari proyek
+      - name: Buat Keystore Debug Otomatis
+        run: |
+          keytool -genkey -noprompt \
+            -alias androiddebugkey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -keystore debug.keystore \
+            -storepass android \
+            -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US"
 
-      - name: Unggah Hasil APK
+      # Buat file pengganti google-services.json supaya tidak error
+      - name: Buat File Google Services Sementara
+        run: |
+          echo '{"project_info":{"project_id":"dummy-temp","project_number":"123456789","storage_bucket":"dummy-temp.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789:android:abc123","android_client_info":{"package_name":"com.contoh.apk"}}}],"oauth_client":[],"api_key":[{"current_key":"AIzaSyTempSajaBukanAsli"}],"services":{}}' > app/google-services.json
+
+      # Beri izin jika nanti ada file gradlew, lalu bangun APK
+      - name: Bangun File APK
+        run: |
+          chmod +x gradlew 2>/dev/null || true
+          gradle assembleDebug --stacktrace --no-daemon
+
+      # Simpan hasil APK agar bisa diunduh
+      - name: Siapkan File APK Untuk Diunduh
         uses: actions/upload-artifact@v4
         with:
-          name: File-APK
+          name: File-APK-Jadi
           path: app/build/outputs/apk/debug/*.apk
+          retention-days: 7
