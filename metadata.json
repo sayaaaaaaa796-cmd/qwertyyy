@@ -1,0 +1,6 @@
+{
+  "name": "VidSave HD",
+  "description": "Aplikasi pengunduh video TikTok, YouTube, dan Instagram HD tanpa watermark dengan fitur riwayat dan konversi MP3.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
