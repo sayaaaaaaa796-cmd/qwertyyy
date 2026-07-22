@@ -1,47 +1,22 @@
-name: Build APK
-run-name: Pembuatan APK
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
-jobs:
-  bangun-apk:
-    name: Proses Pembuatan APK
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ambil Semua Kode
-        uses: actions/checkout@v4
-
-      - name: Siapkan Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'temurin'
-
-      # Buat file kunci tanda tangan otomatis
-      - name: Buat File Kunci Debug
-        run: |
-          keytool -genkey -noprompt \
-            -alias androiddebugkey \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -keystore debug.keystore \
-            -storepass android -keypass android \
-            -dname "CN=Android Debug,O=Android,C=US"
-
-      # Buat file Google Services pas dengan nama paket aplikasimu
-      - name: Buat File Google Services
-        run: |
-          echo '{"project_info":{"project_id":"temp-proyek","project_number":"000000000000","storage_bucket":"temp.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:abc123","android_client_info":{"package_name":"com.aistudio.vidsave.hd"}}}],"oauth_client":[],"api_key":[{"current_key":"AIzaSyContohSaja"}],"services":{}}' > app/google-services.json
-
-      # ✅ LANGKAH PENTING: TIDAK PAKAI ./gradlew, LANGSUNG PAKAI gradle
-      - name: Bangun File APK
-        run: gradle assembleDebug --no-daemon --stacktrace
-
-      # Simpan hasilnya
-      - name: Simpan File APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Hasil-APK
-          path: app/build/outputs/apk/debug/*.apk
-          retention-days: 7
+- name: Buat File Google Services Lengkap
+  run: |
+    echo '{
+      "project_info": {
+        "project_number": "123456789",
+        "project_id": "dummy-proyek",
+        "storage_bucket": "dummy-proyek.appspot.com"
+      },
+      "client": [
+        {
+          "client_info": {
+            "mobilesdk_app_id": "1:123456789:android:abc123",
+            "android_client_info": {
+              "package_name": "com.aistudio.vidsave.hd"
+            }
+          },
+          "api_key": [{"current_key": "AIzaSyContohKunci123456789"}],
+          "oauth_client": [{"client_id": "123456789.apps.googleusercontent.com", "client_type": 3}]
+        }
+      ],
+      "configuration_version": "1"
+    }' > app/google-services.json
